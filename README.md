@@ -1,1 +1,1 @@
-# Primum
+# Primum is a quality improvement project manager for healthcare. It integrates a searchable library of performance indicators, automates statistical process control analyses, and allows asynchronous problem solving between team members.
