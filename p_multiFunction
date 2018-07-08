@@ -56,14 +56,23 @@ var intervalSize = document.getElementById( 'field_o0nqn' );
 var intervalStart = document.querySelectorAll( '.frm_field_1435_container input');
 var intervalStop = document.querySelectorAll( '.frm_field_1803_container input');
 
-/*CALCULATE P, COUNT NUMBER OF OBSERVATIONS, SET UP ROW COUNTER*/
+/*CALCULATE P, COUNT NUMBER OF COMPLETE OBSERVATIONS, SET UP ROW COUNTER*/
+var emptyObsSumAdmin = 0;
   for ( var i = 0, len=p.length; i<len; i++ ) {
     if (num[i].value == '' || denom[i].value == '') {
       p[i].value = '';
     } else {
       p[i].value = parseFloat((num[i].value / denom[i].value).toFixed(5));
     };
-    var nodeLengthAdmin = p.length;
+    var emptyObsAdmin = (function() {
+      if (num[i].value == '' || denom[i].value == '') {
+        return 1;
+      } else {
+        return 0;
+      }
+    }());
+    emptyObsSumAdmin = emptyObsSumAdmin + emptyObsAdmin;
+    var nodeLengthAdmin = p.length - emptyObsSumAdmin;
     countFields[i].value = i+1;
 
 /*AUTOMATE DATE CALCULATIONS*/
@@ -171,6 +180,7 @@ var intervalStop = document.querySelectorAll( '.frm_field_1803_container input')
 
 /*INITIALIZE PARAMETERS*/
   /*CALCULATE MEDIAN*/
+
 var pArray = Array.prototype.slice.call( p );
 var pArraySort = pArray.sort( function(a, b) {return a.value - b.value;} );
 var middle = Math.floor(pArraySort.length / 2);
@@ -181,24 +191,27 @@ var medianAdmin = (function() {
     return parseFloat((parseFloat(pArraySort[middle-1].value) + parseFloat(pArraySort[middle].value)) / 2);
   };
 }());
-  if (pArraySort.length % 2) {
-    median.value = parseFloat(medianAdmin.toFixed(5));
-  } else {
-    median.value = parseFloat(medianAdmin.toFixed(5));
-  };
-  var medianJudge = median.value - target.value;
-  if (nodeLengthAdmin > 9 && medianJudge > 0) {
-    median.style.backgroundColor = 'LightGreen';
-  } else if (nodeLengthAdmin > 9 && medianJudge < 0) {
-    median.style.backgroundColor = 'LightPink';
-  } else {
-    median.style.backgroundColor = 'none';
-  };
+median.value = parseFloat(medianAdmin.toFixed(5));
+var medianJudge = median.value - target.value;
+if (nodeLengthAdmin > 9 && medianJudge > 0) {
+  median.style.backgroundColor = 'LightGreen';
+} else if (nodeLengthAdmin > 9 && medianJudge < 0) {
+  median.style.backgroundColor = 'LightPink';
+} else {
+  median.style.backgroundColor = 'none';
+};
 
-  /*CALCULATE MEAN*/
-  var sumPAdmin = 0;
+  /*CALCULATE MEAN FOR COMPLETE OBSERVATIONS ONLY*/
+var sumPAdmin = 0;
   for ( var i=0, len=p.length; i<len; i++ ) {
-    sumPAdmin = sumPAdmin + parseFloat(p[i].value);
+    var pAdmin = (function() {
+      if (num[i].value == '' || denom[i].value == '') {
+        return 0;
+      } else {
+        return parseFloat(num[i].value / denom[i].value);
+      }
+    }());
+    sumPAdmin = sumPAdmin + pAdmin;
   }
   mean.value = parseFloat((sumPAdmin / nodeLengthAdmin).toFixed(5));
   var meanJudge = mean.value - target.value;
@@ -1069,18 +1082,18 @@ var medianAdmin = (function() {
             ((parseFloat(p[i-3].value) - parseFloat(p[i-4].value)) / (Math.abs(parseFloat(p[i-3].value) - parseFloat(p[i-4].value))));
       }
     }());
-    if (trendRunAdmin < -3) {
+    if (num[i].value != '' && denom[i].value != '' && trendRunAdmin < -3) {
       warnFiveDecrease[i].style.display = 'block';
     } else {
       warnFiveDecrease[i].style.display = 'none';
     };
-    if (trendRunAdmin > 3) {
+    if (num[i].value != '' && denom[i].value != '' && trendRunAdmin > 3) {
       warnFiveIncrease[i].style.display = 'block';
     } else {
       warnFiveIncrease[i].style.display = 'none';
     };
     var unaddressedTrendRunRowAdmin = (function() {
-      if (annotation[i].value == '' && (trendRunAdmin < -3 || trendRunAdmin > 3)) {
+      if (num[i].value != '' && denom[i].value != '' && annotation[i].value == '' && (trendRunAdmin < -3 || trendRunAdmin > 3)) {
         return 1;
       } else {
         return 0;
@@ -1149,18 +1162,18 @@ var medianAdmin = (function() {
       }
     }());
       /*GENERATE SHIFT SIGNAL FOR RUN CHART*/
-    if (nodeLengthAdmin > 9 && sumSideMedianAdmin < -5) {
+    if (num[i].value != '' && denom[i].value != '' && nodeLengthAdmin > 9 && sumSideMedianAdmin < -5) {
       warnSixBelowMedian[i].style.display = 'block';
     } else {
       warnSixBelowMedian[i].style.display = 'none';
     };
-    if (nodeLengthAdmin > 9 && sumSideMedianAdmin > 5) {
+    if (num[i].value != '' && denom[i].value != '' && nodeLengthAdmin > 9 && sumSideMedianAdmin > 5) {
       warnSixAboveMedian[i].style.display = 'block';
     } else {
       warnSixAboveMedian[i].style.display = 'none';
     };
     var unaddressedShiftRunRowAdmin = (function() {
-      if ((nodeLengthAdmin > 9 && annotation[i].value == '') && (sumSideMedianAdmin < -5 || sumSideMedianAdmin > 5)) {
+      if ((num[i].value != '' && denom[i].value != '' && nodeLengthAdmin > 9 && annotation[i].value == '') && (sumSideMedianAdmin < -5 || sumSideMedianAdmin > 5)) {
         return 1;
       } else {
         return 0;
@@ -1532,18 +1545,18 @@ var medianAdmin = (function() {
     runsAdmin = sumCrossMedianAdmin + 1;
     runsMinusLowerLimitAdmin = runsAdmin - runTestLowerLimitAdmin;
     runsMinusUpperLimitAdmin = runsAdmin - runTestUpperLimitAdmin;
-    if (runsMinusLowerLimitAdmin < 0) {
+    if (num[i].value != '' && denom[i].value != '' && runsMinusLowerLimitAdmin < 0) {
       warnClusteringRun[i].style.display = 'block';
     } else {
       warnClusteringRun[i].style.display = 'none';
     };
-    if (runsMinusUpperLimitAdmin > 0) {
+    if (num[i].value != '' && denom[i].value != '' && runsMinusUpperLimitAdmin > 0) {
       warnMixtureRun[i].style.display = 'block';
     } else {
       warnMixtureRun[i].style.display = 'none';
     };
     var unaddressedMixtureClusterRunRowAdmin = (function() {
-      if (annotation[i].value == '' && (runsMinusLowerLimitAdmin < 0 || runsMinusUpperLimitAdmin > 0)) {
+      if (num[i].value != '' && denom[i].value != '' && annotation[i].value == '' && (runsMinusLowerLimitAdmin < 0 || runsMinusUpperLimitAdmin > 0)) {
         return 1;
       } else {
         return 0;
@@ -1569,18 +1582,18 @@ var medianAdmin = (function() {
           ((parseFloat(p[i-4].value) - parseFloat(p[i-5].value)) / (Math.abs(parseFloat(p[i-4].value) - parseFloat(p[i-5].value))));
       }
     }());
-    if (trendControlAdmin < -4) {
+    if (num[i].value != '' && denom[i].value != '' && trendControlAdmin < -4) {
       warnSixDecrease[i].style.display = 'block';
     } else {
       warnSixDecrease[i].style.display = 'none';
     };
-    if (trendControlAdmin > 4) {
+    if (num[i].value != '' && denom[i].value != '' && trendControlAdmin > 4) {
       warnSixIncrease[i].style.display = 'block';
     } else {
       warnSixIncrease[i].style.display = 'none';
     };
     var unaddressedTrendRowAdmin = (function() {
-      if (annotation[i].value == '' && (trendControlAdmin < -4 || trendControlAdmin > 4)) {
+      if (num[i].value != '' && denom[i].value != '' && annotation[i].value == '' && (trendControlAdmin < -4 || trendControlAdmin > 4)) {
         return 1;
       } else {
         return 0;
@@ -1618,18 +1631,18 @@ var medianAdmin = (function() {
           ((parseFloat(p[i-2].value) - twoSdAbove2Admin) / (Math.abs(parseFloat(p[i-2].value) - twoSdAbove2Admin)));
       }
     }());
-    if (nodeLengthAdmin > 19 && sumTwoSdBelowAdmin < 0) {
+    if (num[i].value != '' && denom[i].value != '' && nodeLengthAdmin > 19 && sumTwoSdBelowAdmin < 0) {
       warnTwoThirdsBelowTwoSD[i].style.display = 'block';
     } else {
       warnTwoThirdsBelowTwoSD[i].style.display = 'none';
     };
-    if (nodeLengthAdmin > 19 && sumTwoSdAboveAdmin > 0) {
+    if (num[i].value != '' && denom[i].value != '' && nodeLengthAdmin > 19 && sumTwoSdAboveAdmin > 0) {
       warnTwoThirdsAboveTwoSD[i].style.display = 'block';
     } else {
       warnTwoThirdsAboveTwoSD[i].style.display = 'none';
     };
     var unaddressedShiftOneRowAdmin = (function() {
-      if ((nodeLengthAdmin > 19 && annotation[i].value == '') && (sumTwoSdBelowAdmin < 0 || sumTwoSdAboveAdmin > 0)) {
+      if ((num[i].value != '' && denom[i].value != '' && nodeLengthAdmin > 19 && annotation[i].value == '') && (sumTwoSdBelowAdmin < 0 || sumTwoSdAboveAdmin > 0)) {
         return 1;
       } else {
         return 0;
@@ -1679,18 +1692,18 @@ var medianAdmin = (function() {
         ((parseFloat(p[i-4].value) - oneSdAbove4Admin) / (Math.abs(parseFloat(p[i-4].value) - oneSdAbove4Admin)));
       }
     }());
-    if (nodeLengthAdmin > 19 && sumOneSdBelowAdmin < -2) {
+    if (num[i].value != '' && denom[i].value != '' && nodeLengthAdmin > 19 && sumOneSdBelowAdmin < -2) {
       warnFourFifthsBelowOneSD[i].style.display = 'block';
     } else {
       warnFourFifthsBelowOneSD[i].style.display = 'none';
     };
-    if (nodeLengthAdmin > 19 && sumOneSdAboveAdmin > 2) {
+    if (num[i].value != '' && denom[i].value != '' && nodeLengthAdmin > 19 && sumOneSdAboveAdmin > 2) {
       warnFourFifthsAboveOneSD[i].style.display = 'block';
     } else {
       warnFourFifthsAboveOneSD[i].style.display = 'none';
     };
     var unaddressedShiftTwoRowAdmin = (function() {
-      if ((nodeLengthAdmin > 19 && annotation[i].value == '') && (sumOneSdBelowAdmin < -2 || sumOneSdAboveAdmin > 2)) {
+      if ((num[i].value != '' && denom[i].value != '' && nodeLengthAdmin > 19 && annotation[i].value == '') && (sumOneSdBelowAdmin < -2 || sumOneSdAboveAdmin > 2)) {
         return 1;
       } else {
         return 0;
@@ -1720,18 +1733,18 @@ var medianAdmin = (function() {
           parseFloat(((p[i-7].value - mean.value) / (Math.abs(p[i-7].value - mean.value))));
       }
     }());
-    if (nodeLengthAdmin > 19 && sumSideMeanAdmin < -7) {
+    if (num[i].value != '' && denom[i].value != '' && nodeLengthAdmin > 19 && sumSideMeanAdmin < -7) {
       warnEightBelowMean[i].style.display = 'block';
     } else {
       warnEightBelowMean[i].style.display = 'none';
     };
-    if (nodeLengthAdmin > 19 && sumSideMeanAdmin > 7) {
+    if (num[i].value != '' && denom[i].value != '' && nodeLengthAdmin > 19 && sumSideMeanAdmin > 7) {
       warnEightAboveMean[i].style.display = 'block';
     } else {
       warnEightAboveMean[i].style.display = 'none';
     };
     var unaddressedShiftThreeRowAdmin = (function() {
-      if (nodeLengthAdmin > 19 && annotation[i].value == '' && sumSideMeanAdmin < -7) {
+      if (num[i].value != '' && denom[i].value != '' && nodeLengthAdmin > 19 && annotation[i].value == '' && sumSideMeanAdmin < -7) {
         return 1;
       } else if (nodeLengthAdmin > 19 && annotation[i].value == '' && sumSideMeanAdmin > 7) {
         return 1;
@@ -1771,13 +1784,13 @@ var medianAdmin = (function() {
               ((parseFloat(p[i-7].value) - oneSdBelow7Admin) / (Math.abs(parseFloat(p[i-7].value) - oneSdBelow7Admin))));
       }
     }());
-    if (nodeLengthAdmin > 19 && mixtureAdmin > -2) {
+    if (num[i].value != '' && denom[i].value != '' && nodeLengthAdmin > 19 && mixtureAdmin > -2) {
       warnMixture[i].style.display = 'block';
     } else {
       warnMixture[i].style.display = 'none';
     };
     var unaddressedMixtureRowAdmin = (function() {
-      if (nodeLengthAdmin > 19 && annotation[i].value == '' && mixtureAdmin > -2) {
+      if (num[i].value != '' && denom[i].value != '' && nodeLengthAdmin > 19 && annotation[i].value == '' && mixtureAdmin > -2) {
         return 1;
       } else {
         return 0;
@@ -1836,13 +1849,13 @@ var medianAdmin = (function() {
             ((parseFloat(p[i-14].value) - oneSdBelow14Admin) / (Math.abs(parseFloat(p[i-14].value) - oneSdBelow14Admin))));
       }
     }());
-    if (nodeLengthAdmin > 19 && stratificationAdmin < -28) {
+    if (num[i].value != '' && denom[i].value != '' && nodeLengthAdmin > 19 && stratificationAdmin < -28) {
       warnStratification[i].style.display = 'block';
     } else {
       warnStratification[i].style.display = 'none';
     };
     var unaddressedStratificationRowAdmin = (function() {
-      if (nodeLengthAdmin > 19 && annotation[i].value == '' && stratificationAdmin < -28) {
+      if (num[i].value != '' && denom[i].value != '' && nodeLengthAdmin > 19 && annotation[i].value == '' && stratificationAdmin < -28) {
         return 1;
       } else {
         return 0;
@@ -1850,7 +1863,8 @@ var medianAdmin = (function() {
     }());
 
     /*SIGNAL OVERCONTROL: >= FOURTEEN CONSECTIVE POINTS ALTERNATING UP AND DOWN*/
-    if (overcontrol1Admin < 0 &&
+    if (num[i].value != '' && denom[i].value != '' &&
+      overcontrol1Admin < 0 &&
       overcontrol2Admin > 0 &&
       overcontrol3Admin < 0 &&
       overcontrol4Admin > 0 &&
@@ -1865,7 +1879,8 @@ var medianAdmin = (function() {
       overcontrol13Admin < 0 &&
       overcontrol14Admin > 0) {
         warnOvercontrol[i].style.display = 'block';
-    } else if (overcontrol1Admin > 0 &&
+    } else if (num[i].value != '' && denom[i].value != '' &&
+      overcontrol1Admin > 0 &&
       overcontrol2Admin < 0 &&
       overcontrol3Admin > 0 &&
       overcontrol4Admin < 0 &&
@@ -1884,7 +1899,7 @@ var medianAdmin = (function() {
       warnOvercontrol[i].style.display = 'none';
     };
     var unaddressedOvercontrolRowAdmin = (function() {
-      if (annotation[i].value == '' &&
+      if (num[i].value != '' && denom[i].value != '' && annotation[i].value == '' &&
         (overcontrol1Admin < 0 &&
         overcontrol2Admin > 0 &&
         overcontrol3Admin < 0 &&
@@ -1920,12 +1935,12 @@ var medianAdmin = (function() {
     }());
 
     /*SIGNAL OUTLIER: P > 3 SD FROM MEAN*/
-    if (nodeLengthAdmin > 19 && pMinusThreeSdBelowAdmin < 0) {
+    if (num[i].value != '' && denom[i].value != '' && nodeLengthAdmin > 19 && pMinusThreeSdBelowAdmin < 0) {
       warnOutlierBelow[i].style.display = 'block';
     } else {
       warnOutlierBelow[i].style.display = 'none';
     };
-    if (nodeLengthAdmin > 19 && pMinusThreeSdAboveAdmin > 0) {
+    if (num[i].value != '' && denom[i].value != '' && nodeLengthAdmin > 19 && pMinusThreeSdAboveAdmin > 0) {
       warnOutlierAbove[i].style.display = 'block';
     } else {
       warnOutlierAbove[i].style.display = 'none';
@@ -1934,7 +1949,7 @@ var medianAdmin = (function() {
 /*UNADDRESSED SIGNAL COUNTERS*/
   /*UNADDRESSED OUTLIER COUNTER*/
     var unaddressedOutlierRowAdmin = (function() {
-      if ((nodeLengthAdmin > 19 && annotation[i].value == '') && (pMinusThreeSdBelowAdmin < 0 || pMinusThreeSdAboveAdmin > 0)) {
+      if ((num[i].value != '' && denom[i].value != '' && nodeLengthAdmin > 19 && annotation[i].value == '') && (pMinusThreeSdBelowAdmin < 0 || pMinusThreeSdAboveAdmin > 0)) {
         return 1;
       } else {
         return 0;
